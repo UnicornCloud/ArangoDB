@@ -1,0 +1,29 @@
+#!/usr/bin/bash
+
+primary_ip=$(ip -o route get to 8.8.8.8 | sed -n 's/.*src \([0-9.]\+\).*/\1/p')
+# stackoverflow.com/a/49552792
+
+daemon(){
+  export IP=$primary_ip
+  docker volume create arangodb
+  docker run -d --rm --name=adb --rm -p 8528:8528 \
+      -v arangodb:/data \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      arangodb/arangodb-starter \
+      --starter.address=$IP \
+      --starter.mode=single
+}
+
+interactive(){
+  export IP=$primary_ip
+  docker volume create arangodb
+  docker run -it --name=adb --rm -p 8528:8528 \
+      -v arangodb:/data \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      arangodb/arangodb-starter \
+      --starter.address=$IP \
+      --starter.mode=single
+}
+
+interactive
+# www.arangodb.com/docs/stable/deployment-single-instance-using-the-starter.html#using-the-arangodb-starter-in-docker
